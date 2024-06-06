@@ -1,0 +1,139 @@
+import java.util.Scanner;
+
+public class Liga {
+    
+    private static String[] equipos;
+    private static int[] puntos;
+    private static int[] gf;  // Goles a favor
+    private static int[] gc;  // Goles en contra
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("Seleccione una opción:");
+            System.out.println("1. Ingresar datos de equipos y partidos");
+            System.out.println("2. Mostrar clasificación de equipos");
+            System.out.println("3. Salir");
+
+            String opcion = sc.nextLine();
+            switch (opcion) {
+                case "1":
+                    try {
+                        ingresarDatos(sc);
+                    } catch (Exception e) {
+                        System.out.println("Error al ingresar datos: " + e.getMessage());
+                    }
+                    break;
+                case "2":
+                    try {
+                        mostrarClasificacion();
+                    } catch (Exception e) {
+                        System.out.println("Error al mostrar la clasificación: " + e.getMessage());
+                    }
+                    break;
+                case "3":
+                    System.out.println("Saliendo...");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        }
+    }
+
+    private static void ingresarDatos(Scanner sc) throws Exception {
+        System.out.println("Ingrese el número de equipos:");
+        int nequipos = Integer.parseInt(sc.nextLine());
+
+        equipos = new String[nequipos];
+        puntos = new int[nequipos];
+        gf = new int[nequipos];
+        gc = new int[nequipos];
+
+        System.out.println("Ingrese los nombres de los equipos:");
+        for (int i = 0; i < nequipos; i++) {
+            equipos[i] = sc.nextLine();
+            puntos[i] = 0;
+            gf[i] = 0;
+            gc[i] = 0;
+        }
+
+        System.out.println("Ingrese los datos de los partidos (formato: Jornada,Fecha,Local,GolesLocal-GolesVisitante,Visitante). Deje una línea en blanco para terminar:");
+        while (sc.hasNextLine()) {
+            String linea = sc.nextLine();
+            if (linea.isEmpty()) break;  // Terminar entrada con línea vacía
+
+            String[] campo = linea.split(",");
+            if (campo.length != 5) {
+                throw new Exception("Formato de entrada incorrecto. Use Jornada,Fecha,Local,GolesLocal-GolesVisitante,Visitante.");
+            }
+
+            String local = campo[2];
+            String visitante = campo[4];
+            int goleslocal = Integer.parseInt(campo[3].split("-")[0]);
+            int golesvisitante = Integer.parseInt(campo[3].split("-")[1]);
+
+            int posLocal = posicion(equipos, local);
+            int posVisitante = posicion(equipos, visitante);
+            if (posLocal == -1 || posVisitante == -1) {
+                throw new Exception("Equipo no encontrado en la lista de equipos.");
+            }
+
+            // Acumular goles y puntos
+            gf[posLocal] += goleslocal;
+            gc[posLocal] += golesvisitante;
+            gf[posVisitante] += golesvisitante;
+            gc[posVisitante] += goleslocal;
+
+            if (goleslocal > golesvisitante) {
+                puntos[posLocal] += 3;
+            } else if (goleslocal < golesvisitante) {
+                puntos[posVisitante] += 3;
+            } else {
+                puntos[posLocal] += 1;
+                puntos[posVisitante] += 1;
+            }
+
+            System.out.println(local + " ha jugado contra " + visitante + " y el resultado ha sido " + goleslocal + "-" + golesvisitante);
+        }
+    }
+
+    private static int posicion(String[] equipos, String equipo) {
+        for (int i = 0; i < equipos.length; i++) {
+            if (equipos[i].equals(equipo)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static void mostrarClasificacion() throws Exception {
+        if (equipos == null || puntos == null || gf == null || gc == null) {
+            throw new Exception("No hay datos disponibles. Ingrese los datos primero.");
+        }
+
+        System.out.println("Clasificación de los equipos:");
+        for (int i = 0; i < equipos.length; i++) {
+            System.out.println(equipos[i] + " - Puntos: " + puntos[i] + ", Goles a favor: " + gf[i] + ", Goles en contra: " + gc[i]);
+        }
+
+        // Opción de mostrar los dos primeros equipos (se puede mejorar la lógica para ordenar por múltiples criterios)
+        int primero = 0, segundo = 1;
+        if (puntos[segundo] > puntos[primero]) {
+            primero = 1;
+            segundo = 0;
+        }
+        for (int i = 2; i < equipos.length; i++) {
+            if (puntos[i] > puntos[primero]) {
+                segundo = primero;
+                primero = i;
+            } else if (puntos[i] > puntos[segundo]) {
+                segundo = i;
+            }
+        }
+
+        System.out.println("Los dos primeros equipos son:");
+        System.out.println("1. " + equipos[primero] + " - Puntos: " + puntos[primero] + ", Goles a favor: " + gf[primero] + ", Goles en contra: " + gc[primero]);
+        System.out.println("2. " + equipos[segundo] + " - Puntos: " + puntos[segundo] + ", Goles a favor: " + gf[segundo] + ", Goles en contra: " + gc[segundo]);
+    }
+}
