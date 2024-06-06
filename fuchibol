@@ -132,6 +132,7 @@ public class Liga {
             }
         }
 
+
         System.out.println("Los dos primeros equipos son:");
         System.out.println("1. " + equipos[primero] + " - Puntos: " + puntos[primero] + ", Goles a favor: " + gf[primero] + ", Goles en contra: " + gc[primero]);
         System.out.println("2. " + equipos[segundo] + " - Puntos: " + puntos[segundo] + ", Goles a favor: " + gf[segundo] + ", Goles en contra: " + gc[segundo]);
