@@ -1,0 +1,123 @@
+import java.util.*;
+
+public class Parser {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("Seleccione una opción:");
+            System.out.println("1. Ingresar datos de líneas y estaciones");
+            System.out.println("2. Mostrar clasificación de líneas");
+            System.out.println("3. Salir");
+
+            String opcion = sc.nextLine();
+            switch (opcion) {
+                case "1":
+                    try {
+                        ingresarDatos(sc);
+                    } catch (Exception e) {
+                        System.out.println("Error al ingresar datos: " + e.getMessage());
+                    }
+                    break;
+                case "2":
+                    try {
+                        mostrarClasificacion();
+                    } catch (Exception e) {
+                        System.out.println("Error al mostrar la clasificación: " + e.getMessage());
+                    }
+                    break;
+                case "3":
+                    System.out.println("Saliendo...");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        }
+    }
+
+    private static List<String> nombresLineas = new ArrayList<>();
+    private static List<List<String>> estacionesPorLinea = new ArrayList<>();
+    private static List<Integer> numeroDeEstaciones = new ArrayList<>();
+
+    private static void ingresarDatos(Scanner sc) throws Exception {
+        System.out.println("Ingrese el número de líneas:");
+        int nlineas = Integer.parseInt(sc.nextLine());
+
+        nombresLineas.clear();
+        estacionesPorLinea.clear();
+        numeroDeEstaciones.clear();
+
+        for (int i = 0; i < nlineas; i++) {
+            System.out.println("Ingrese el nombre de la línea " + (i + 1) + ":");
+            String nombreLinea = sc.nextLine();
+            nombresLineas.add(nombreLinea);
+            estacionesPorLinea.add(new ArrayList<>());
+        }
+
+        System.out.println("Ingrese los datos de las estaciones (formato: Línea,Estación). Deje una línea en blanco para terminar:");
+        while (sc.hasNextLine()) {
+            String linea = sc.nextLine();
+            if (linea.isEmpty()) break;  // Terminar entrada con línea vacía
+
+            String[] partes = linea.split(",");
+            if (partes.length != 2) {
+                throw new Exception("Formato de entrada incorrecto. Use Línea,Estación.");
+            }
+
+            String lineaNombre = partes[0];
+            String estacionNombre = partes[1];
+
+            int posicionLinea = posicion(nombresLineas, lineaNombre);
+            if (posicionLinea == -1) {
+                throw new Exception("Línea no encontrada: " + lineaNombre);
+            }
+
+            estacionesPorLinea.get(posicionLinea).add(estacionNombre);
+        }
+
+        for (List<String> estaciones : estacionesPorLinea) {
+            numeroDeEstaciones.add(estaciones.size());
+        }
+    }
+
+    private static int posicion(List<String> nombresLineas, String lineaNombre) {
+        return nombresLineas.indexOf(lineaNombre);
+    }
+
+    private static void mostrarClasificacion() throws Exception {
+        if (nombresLineas.isEmpty() || numeroDeEstaciones.isEmpty()) {
+            throw new Exception("No hay datos disponibles. Ingrese los datos primero.");
+        }
+
+        System.out.println("Clasificación de las líneas de metro por número de estaciones:");
+        List<LineaConEstaciones> lineasConEstaciones = new ArrayList<>();
+        for (int i = 0; i < nombresLineas.size(); i++) {
+            lineasConEstaciones.add(new LineaConEstaciones(nombresLineas.get(i), numeroDeEstaciones.get(i)));
+        }
+
+        lineasConEstaciones.sort(Comparator.comparingInt(LineaConEstaciones::getNumeroEstaciones).reversed());
+
+        for (LineaConEstaciones linea : lineasConEstaciones) {
+            System.out.println("Línea " + linea.getNombre() + " - Número de estaciones: " + linea.getNumeroEstaciones());
+        }
+    }
+
+    private static class LineaConEstaciones {
+        private final String nombre;
+        private final int numeroEstaciones;
+
+        public LineaConEstaciones(String nombre, int numeroEstaciones) {
+            this.nombre = nombre;
+            this.numeroEstaciones = numeroEstaciones;
+        }
+
+        public String getNombre() {
+            return nombre;
+        }
+
+        public int getNumeroEstaciones() {
+            return numeroEstaciones;
+        }
+    }
+}
